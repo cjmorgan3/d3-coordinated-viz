@@ -1,0 +1,10 @@
+/* 575 boilerplate style.css */
+.map {
+	background-color: #ccffe6;
+}
+
+.provinces {
+    fill: #FFF;
+    stroke: #CCC;
+    stroke-width: 2px;
+}
