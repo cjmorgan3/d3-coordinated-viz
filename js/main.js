@@ -152,7 +152,13 @@ function choropleth(props, colorScale){
 function setChart(csvData, colorScale){
     //chart frame dimensions
     var chartWidth = window.innerWidth * 0.425,
-        chartHeight = 560;
+        chartHeight = 560,
+        leftPadding = 25,
+        rightPadding = 2,
+        topBottomPadding = 5,
+        chartInnerWidth = chartWidth - leftPadding - rightPadding,
+        chartInnerHeight = chartHeight - topBottomPadding * 2,
+        translate = "translate(" + leftPadding + "," + topBottomPadding + ")";
 
     //create a second svg element to hold the bar chart
     var chart = d3.select("body")
@@ -161,32 +167,69 @@ function setChart(csvData, colorScale){
         .attr("height", chartHeight)
         .attr("class", "chart");
 
-    //create a scale to size bars proportionally to frame
+    //create a rectangle for chart background fill
+    var chartBackground = chart.append("rect")
+        .attr("class", "chartBackground")
+        .attr("width", chartInnerWidth)
+        .attr("height", chartInnerHeight)
+        .attr("transform", translate);
+
+    //create a scale to size bars proportionally to frame and for axis
     var yScale = d3.scale.linear()
-        .range([0, chartHeight])
-        .domain([0, 105]);
+        .range([560, 0])
+        .domain([0, 0.4]);
 
     //set bars for each province
-    var bars = chart.selectAll(".bars")
+    var bars = chart.selectAll(".bar")
         .data(csvData)
         .enter()
         .append("rect")
+        .sort(function(a, b){
+            console.log("hi")
+            return b[expressed]-a[expressed]
+        })
         .attr("class", function(d){
-            return "bars " + d.ID;
+            console.log("bars")
+            return "bar " + d.ID;
         })
-        .attr("width", chartWidth / csvData.length - 1)
+        .attr("width", chartInnerWidth / csvData.length - 1)
         .attr("x", function(d, i){
-            return i * (chartWidth / csvData.length);
+            return i * (chartInnerWidth / csvData.length) + leftPadding;
         })
-        .attr("height", function(d){
-            return yScale(parseFloat(d[expressed]));
+        .attr("height", function(d, i){
+            return 550 - yScale(parseFloat(d[expressed]));
         })
-        .attr("y", function(d){
-            return chartHeight - yScale(parseFloat(d[expressed]));
+        .attr("y", function(d, i){
+            return yScale(parseFloat(d[expressed])) + topBottomPadding;
         })
         .style("fill", function(d){
             return choropleth(d, colorScale);
         });
+
+    //create a text element for the chart title
+    var chartTitle = chart.append("text")
+        .attr("x", 40)
+        .attr("y", 40)
+        .attr("class", "chartTitle")
+        .text("Amount of " + expressed + " in each Province/Territory");
+
+    //create vertical axis generator
+    var yAxis = d3.svg.axis()
+        .scale(yScale)
+        .orient("left");
+
+    //place axis
+    var axis = chart.append("g")
+        .attr("class", "axis")
+        .attr("transform", translate)
+        .call(yAxis);
+
+    //create frame for chart border
+    var chartFrame = chart.append("rect")
+        .attr("class", "chartFrame")
+        .attr("width", chartInnerWidth)
+        .attr("height", chartInnerHeight)
+        .attr("transform", translate);
 };
 
 })(); //last line of main.js
