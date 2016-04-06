@@ -3,7 +3,7 @@
 
 //pseudo-global variables
 var attrArray = ["Copper", "Gold", "Timber", "Natural Gas", "Freshwater"]; //list of attributes
-var expressed = attrArray[0]; //initial attribute
+var expressed = attrArray[4]; //initial attribute
 
 //begin script when window loads
 window.onload = setMap();
@@ -112,15 +112,15 @@ function setEnumerationUnits(canadianProvinces, map, path, colorScale){
 //function to create color scale generator
 function makeColorScale(data){
     var colorClasses = [
-        "#fee5d9",
-        "#fcae91",
-        "#fb6a4a",
-        "#de2d26",
-        "#a50f15"
+        "#eff3ff",
+        "#bdd7e7",
+        "#6baed6",
+        "#3182bd",
+        "#08519c"
     ];
 
     //create color scale generator
-    var colorScale = d3.scale.quantile()
+    var colorScale = d3.scale.threshold()
         .range(colorClasses);
 
     //build array of all values of the expressed attribute
@@ -130,7 +130,16 @@ function makeColorScale(data){
         domainArray.push(val);
     };
 
-    //assign array of expressed values as scale domain
+    //cluster data using ckmeans clustering algorithm to create natural breaks
+    var clusters = ss.ckmeans(domainArray, 5);
+    //reset domain array to cluster minimums
+    domainArray = clusters.map(function(d){
+        return d3.min(d);
+    });
+    //remove first value from domain array to create class breakpoints
+    domainArray.shift();
+
+    //assign array of last 4 cluster minimums as domain
     colorScale.domain(domainArray);
 
     return colorScale;
@@ -152,8 +161,8 @@ function choropleth(props, colorScale){
 function setChart(csvData, colorScale){
     //chart frame dimensions
     var chartWidth = window.innerWidth * 0.425,
-        chartHeight = 560,
-        leftPadding = 25,
+        chartHeight = 570,
+        leftPadding = 35,
         rightPadding = 2,
         topBottomPadding = 5,
         chartInnerWidth = chartWidth - leftPadding - rightPadding,
@@ -177,7 +186,7 @@ function setChart(csvData, colorScale){
     //create a scale to size bars proportionally to frame and for axis
     var yScale = d3.scale.linear()
         .range([560, 0])
-        .domain([0, 0.4]);
+        .domain([0, 18]);
 
     //set bars for each province
     var bars = chart.selectAll(".bar")
@@ -185,19 +194,22 @@ function setChart(csvData, colorScale){
         .enter()
         .append("rect")
         .sort(function(a, b){
-            console.log("hi")
-            return b[expressed]-a[expressed]
+            return a[expressed]-b[expressed]
         })
         .attr("class", function(d){
-            console.log("bars")
             return "bar " + d.ID;
         })
+        .attr("class", "bars")
         .attr("width", chartInnerWidth / csvData.length - 1)
         .attr("x", function(d, i){
             return i * (chartInnerWidth / csvData.length) + leftPadding;
         })
         .attr("height", function(d, i){
-            return 550 - yScale(parseFloat(d[expressed]));
+            // if (d[expressed]=="0"){
+                // return 10
+            // } else {
+            return 560 - yScale(parseFloat(d[expressed]));
+            // }
         })
         .attr("y", function(d, i){
             return yScale(parseFloat(d[expressed])) + topBottomPadding;
@@ -208,10 +220,16 @@ function setChart(csvData, colorScale){
 
     //create a text element for the chart title
     var chartTitle = chart.append("text")
-        .attr("x", 40)
+        .attr("x", 60)
         .attr("y", 40)
         .attr("class", "chartTitle")
-        .text("Amount of " + expressed + " in each Province/Territory");
+        .text(expressed + " in each Province or Territory");
+
+    var chartSubtitle = chart.append("text")
+        .attr("x", 260)
+        .attr("y", 70)
+        .attr("class", "chartSubtitle")
+        .text("Normalized as percent of surface area");
 
     //create vertical axis generator
     var yAxis = d3.svg.axis()

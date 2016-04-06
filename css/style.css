@@ -3,11 +3,12 @@
 	background-color: #ccffe6;
 	border: medium solid #999;
     margin: 10px 0 0 20px;
+    border-radius: 20px;
 }
 
 .provinces {
     fill: #FFF;
-    stroke: #CCC;
+    stroke: #FFF;
     stroke-width: 2px;
 }
 
@@ -29,13 +30,18 @@
 }
 
 .chartTitle {
-    font-family: sans-serif;
-    font-size: 1.5em;
+    font-family: Rockwell;
+    font-size: 1.4em;
     font-weight: bold;
+}
+.chartSubtitle {
+    font-family: Rockwell;
+    font-size: 1em;
 }
 
 .chartBackground {
-    fill: rgba(128,128,128,.2);
+    background-image: url("img/leaf.jpg");
+    fill: #cccccc;
 }
 
 .chartFrame {
@@ -43,6 +49,11 @@
     stroke: #999;
     stroke-width: 3px;
     shape-rendering: crispEdges;
+}
+
+.bars {
+    stroke: #b3b3b3;
+    stroke-width: 1px;
 }
 
 .axis path,
@@ -54,7 +65,7 @@
 }
 
 .axis text {
-    font-family: sans-serif;
+    font-family: Rockwell;
     font-size: 0.8em;
     fill: #999;
 }
