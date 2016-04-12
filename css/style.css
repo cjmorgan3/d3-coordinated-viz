@@ -1,4 +1,40 @@
 /* 575 boilerplate style.css */
+#pagetitle {
+    color: #cc0000;
+    font-size: 3em;
+    font-family: Rockwell;
+    text-align: center;
+    font-style: italic;
+    background-color: #fff;
+    background:rgba(255,255,255,0.8);
+    border-radius: 10px;
+    width: 70%;
+    margin: auto;
+}
+
+#full-screen-background-image {
+    z-index: -999;
+    min-height: 100%;
+    min-width: 1024px;
+    width: 100%;
+    height: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    opacity: 0.4;
+}
+
+#leaf1 {
+    height: 40px;
+    padding-right: 4%;
+    padding-top: 10px; 
+}
+#leaf2 {
+    height: 40px;
+    padding-left: 4%;
+    padding-top: 10px;
+}
+
 .map {
 	background-color: #ccffe6;
 	border: medium solid #999;
@@ -13,7 +49,7 @@
 }
 
 .chart {
-    background-color: #FFF;
+    background:rgba(255,255,255,0);
     border: none;
     float: right;
     margin: 10px 20px 0 0;
@@ -59,20 +95,20 @@
 .axis path,
 .axis line {
     fill: none;
-    stroke: #999;
+    stroke: #000;
     stroke-width: 1px;
     shape-rendering: crispEdges;
 }
 
 .axis text {
     font-family: Rockwell;
-    font-size: 0.8em;
-    fill: #999;
+    font-size: 1em;
+    fill: #000;
 }
 
 .dropdown {
     position: absolute;
-    top: 40px;
+    top: 110px;
     left: 50px;
     z-index: 10;
     font-family: sans-serif;
@@ -86,4 +122,34 @@
 
 option {
     font-weight: normal;
+}
+
+.infolabel {
+    position: absolute;
+    height: 50px;
+    min-width: 100px;
+    color: #cc0000;
+    font-family: Rockwell;
+    background-color: #fff;
+    border: solid thin #cc0000;
+    padding: 5px 10px;
+    top: -75px;
+}
+
+.infolabel h1 {
+    margin: 0 20px 0 0;
+    padding: 0;
+    display: inline-block;
+    line-height: 1em;
+}
+
+#sources {
+    font-family: Rockwell;
+    color: #000066; /*navy blue*/
+    padding: .5%;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    right: 1%;
+    font-size: 90%;
 }

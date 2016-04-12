@@ -2,12 +2,12 @@
 (function(){
 
 //pseudo-global variables
-var attrArray = ["Copper", "Gold", "Timber", "Natural Gas", "Freshwater"]; //list of attributes
-var expressed = attrArray[4]; //initial attribute
+var attrArray = ["Copper", "Gold", "Timber", "Natural Gas", "Freshwater",]; //list of attributes
+var expressed = attrArray[0]; //initial attribute
 
 //chart frame dimensions
-var chartWidth = window.innerWidth * 0.425,
-    chartHeight = 570,
+var chartWidth = window.innerWidth * 0.44,
+    chartHeight = 540,
     leftPadding = 35,
     rightPadding = 2,
     topBottomPadding = 5,
@@ -17,8 +17,26 @@ var chartWidth = window.innerWidth * 0.425,
 
 //create a scale to size bars proportionally to frame and for axis
 var yScale = d3.scale.linear()
-    .range([560, 0])
-    .domain([0, 18]);
+    .range([530, 80])
+    .domain([0, 50]);
+//     .domain(function() {
+//     if (expressed = "Freshwater") {
+//         return([0, 16]);
+//     }
+//     else if (expressed = "Copper") {
+//         return([0, 0.33]);
+//     }
+//     else if (expressed = "Gold") {
+//         return([0, 0.07]);
+//     }
+//     else if (expressed = "Timber") {
+//         return([0, 140]);
+//     }
+//     else if (expressed = "Natural Gas") {
+//         return([0, 185]);
+//     }    
+//     else {return([0, 16]);}
+// });
 
 //begin script when window loads
 window.onload = setMap();
@@ -27,8 +45,8 @@ window.onload = setMap();
 function setMap(){
 
         //map frame dimensions
-    var width = window.innerWidth * 0.5,
-        height = 560;
+    var width = window.innerWidth * 0.48,
+        height = 530;
 
     //create new svg container for the map
     var map = d3.select("body")
@@ -42,7 +60,7 @@ function setMap(){
         .center([12.09, 62.69])
         .rotate([101.00, 0, 0])
         .parallels([39.05, 74.06])
-        .scale(750)
+        .scale(700)
         .translate([width / 2, height / 2]);
 
     var path = d3.geo.path()
@@ -50,7 +68,7 @@ function setMap(){
 
     //use queue.js to parallelize asynchronous data loading
     d3_queue.queue()
-        .defer(d3.csv, "data/canNatRes.csv") //load attributes from csv
+        .defer(d3.csv, "data/canNatResPercent.csv") //load attributes from csv
         .defer(d3.json, "data/canadian_provinces_territories.topojson") //load background spatial data
         .await(callback);
 
@@ -60,10 +78,6 @@ function setMap(){
 
         //translate canada TopoJSON
         var canadianProvinces = topojson.feature(canada, canada.objects.canadian_provinces_territories).features;
-        
-        //examine the results
-        console.log(canadianProvinces);
-        console.log(csvData);
 
         //join csv data to GeoJSON enumeration units
         canadianProvinces = joinData(canadianProvinces, csvData);
@@ -78,15 +92,13 @@ function setMap(){
         setChart(csvData, colorScale);
 
         //function to create a dropdown menu for attribute selection
-        createDropdown(csvData)
-
-        changeAttribute(attribute, csvData)
+        createDropdown(csvData);
     };
 }; //end of setMap()
 
 function joinData(canadianProvinces, csvData){
         //variables for data join
-        var attrArray = ["Copper", "Gold", "Timber", "Natural Gas", "Freshwater"];
+        // var attrArray = ["Copper", "Gold", "Timber", "Natural Gas", "Freshwater", "Resources"];
 
         //loop through csv to assign each set of csv attribute values to geojson region
         for (var i=0; i<csvData.length; i++){
@@ -125,19 +137,30 @@ function setEnumerationUnits(canadianProvinces, map, path, colorScale){
         })
         .attr("d", path)
         .style("fill", function(d){
-            return colorScale(d.properties[expressed]);
-        });
+            return choropleth(d.properties, colorScale);
+        })
+        .on("mouseover", function(d){
+            highlight(d.properties);
+        })
+        .on("mouseout", function(d){
+            dehighlight(d.properties);
+        })
+        .on("mousemove", moveLabel);
+
+    //add style descriptor to each path
+    var desc = provinces.append("desc")
+        .text('{"stroke": "#fff", "stroke-width": "2px"}');
 };
+
+var colorCopper = ["#feedde","#fdbe85","#fd8d3c","#e6550d","#a63603"];
+var colorGold = ["#FFF7D5","#FFEEAA","#FFE680","#FFDD55","#FFCC00"];
+var colorTimber = ["#edf8e9","#bae4b3","#74c476","#31a354","#006d2c"];
+var colorNaturalGas = ["#feebe2","#fbb4b9","#f768a1","#c51b8a","#7a0177"]; 
+var colorFreshwater = ["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"];
 
 //function to create color scale generator
 function makeColorScale(data){
-    var colorClasses = [
-        "#eff3ff",
-        "#bdd7e7",
-        "#6baed6",
-        "#3182bd",
-        "#08519c"
-    ];
+    var colorClasses = ["#edf8fb", "#b2e2e2", "#66c2a4", "#2ca25f", "#006d2c"];
 
     //create color scale generator
     var colorScale = d3.scale.threshold()
@@ -169,7 +192,7 @@ function makeColorScale(data){
 function choropleth(props, colorScale){
     //make sure attribute value is a number
     var val = parseFloat(props[expressed]);
-    //if attribute value exists, assign a color; otherwise assign gray
+    //if attribute value exists, assign a color; otherwise assign white
     if (val && val != NaN){
         return colorScale(val);
     } else {
@@ -179,16 +202,6 @@ function choropleth(props, colorScale){
 
 //function to create coordinated bar chart
 function setChart(csvData, colorScale){
-    //chart frame dimensions
-    var chartWidth = window.innerWidth * 0.425,
-        chartHeight = 570,
-        leftPadding = 35,
-        rightPadding = 2,
-        topBottomPadding = 5,
-        chartInnerWidth = chartWidth - leftPadding - rightPadding,
-        chartInnerHeight = chartHeight - topBottomPadding * 2,
-        translate = "translate(" + leftPadding + "," + topBottomPadding + ")";
-
     //create a second svg element to hold the bar chart
     var chart = d3.select("body")
         .append("svg")
@@ -203,11 +216,6 @@ function setChart(csvData, colorScale){
         .attr("height", chartInnerHeight)
         .attr("transform", translate);
 
-    //create a scale to size bars proportionally to frame and for axis
-    var yScale = d3.scale.linear()
-        .range([560, 0])
-        .domain([0, 18]);
-
     //set bars for each province
     var bars = chart.selectAll(".bar")
         .data(csvData)
@@ -217,21 +225,25 @@ function setChart(csvData, colorScale){
             return a[expressed]-b[expressed]
         })
         .attr("class", function(d){
-            return "bar " + d.adm1_code;
+            return "bar " + d.ID;
         })
-        .attr("width", chartInnerWidth / csvData.length - 1);
+        .attr("width", chartInnerWidth / csvData.length - 1)
+        .on("mouseover", highlight)
+        .on("mouseout", dehighlight)
+        .on("mousemove", moveLabel);
 
     //create a text element for the chart title
     var chartTitle = chart.append("text")
         .attr("x", 60)
         .attr("y", 40)
-        .attr("class", "chartTitle");
+        .attr("class", "chartTitle")
+        .text("Resources in each Province or Territory");
 
     var chartSubtitle = chart.append("text")
-        .attr("x", 260)
+        .attr("x", 240)
         .attr("y", 70)
         .attr("class", "chartSubtitle")
-        .text("Normalized as percent of surface area");
+        .text("Normalized as percent of country's total share");
 
     //create vertical axis generator
     var yAxis = d3.svg.axis()
@@ -288,7 +300,7 @@ function changeAttribute(attribute, csvData){
     var colorScale = makeColorScale(csvData);
 
     //recolor enumeration units
-    var regions = d3.selectAll(".provinces")
+    var provinces = d3.selectAll(".provinces")
         .transition()
         .duration(1000)
         .style("fill", function(d){
@@ -318,7 +330,7 @@ function updateChart(bars, n, colorScale){
         })
         //size/resize bars
         .attr("height", function(d, i){
-            return 560 - yScale(parseFloat(d[expressed]));
+            return 530 - yScale(parseFloat(d[expressed]));
         })
         .attr("y", function(d, i){
             return yScale(parseFloat(d[expressed])) + topBottomPadding;
@@ -330,6 +342,92 @@ function updateChart(bars, n, colorScale){
 
      var chartTitle = d3.select(".chartTitle")
         .text(expressed + " in each Province or Territory");   
+};
+
+//function to highlight enumeration units and bars
+function highlight(props){
+    //change stroke
+    var selected = d3.selectAll(".provinces")
+        .style({
+            "stroke": "yellow",
+            "stroke-width": "2"
+        });
+
+    setLabel(props);
+};
+
+//function to create dynamic label
+function setLabel(props){
+    //label content
+    var labelAttribute = "<h1>" + props[expressed] +
+        "</h1><b>" + expressed + "</b>";
+        console.log(labelAttribute)
+
+    //create info label div
+    var infolabel = d3.select("body")
+        .append("div")
+        .attr({
+            "class": "infolabel",
+            "id": props.ID + "_label"
+        })
+        .html(labelAttribute);
+
+    var provinceName = infolabel.append("div")
+        .attr("class", "labelname")
+        .html(props.name);
+};
+
+//function to reset the element style on mouseout
+function dehighlight(props){
+    var selected = d3.selectAll(".provinces")
+        .style({
+            "stroke": function(){
+                return getStyle(this, "stroke")
+            },
+            "stroke-width": function(){
+                return getStyle(this, "stroke-width")
+            }
+        });
+
+    function getStyle(element, styleName){
+        var styleText = d3.select(element)
+            .select("desc")
+            .text();
+
+        var styleObject = JSON.parse(styleText);
+
+        return styleObject[styleName];
+    };
+
+    //remove info label
+    d3.select(".infolabel")
+        .remove();
+};
+
+//function to move info label with mouse
+function moveLabel(){
+    //get width of label
+    var labelWidth = d3.select(".infolabel")
+        .node()
+        .getBoundingClientRect()
+        .width;
+
+    //use coordinates of mousemove event to set label coordinates
+    var x1 = d3.event.clientX + 10,
+        y1 = d3.event.clientY - 75,
+        x2 = d3.event.clientX - labelWidth - 10,
+        y2 = d3.event.clientY + 25;
+
+    //horizontal label coordinate, testing for overflow
+    var x = d3.event.clientX > window.innerWidth - labelWidth - 20 ? x2 : x1;
+    //vertical label coordinate, testing for overflow
+    var y = d3.event.clientY < 75 ? y2 : y1;
+
+    d3.select(".infolabel")
+        .style({
+            "left": x + "px",
+            "top": y + "px"
+        });
 };
 
 })(); //last line of main.js
