@@ -133,7 +133,7 @@ function setEnumerationUnits(canadianProvinces, map, path, colorScale){
         .enter()
         .append("path")
         .attr("class", function(d){
-            return "provinces " + d.properties.ID;
+            return "provinces ID" + d.properties.ID;
         })
         .attr("d", path)
         .style("fill", function(d){
@@ -225,7 +225,7 @@ function setChart(csvData, colorScale){
             return a[expressed]-b[expressed]
         })
         .attr("class", function(d){
-            return "bar " + d.ID;
+            return "bar ID" + d.ID;
         })
         .attr("width", chartInnerWidth / csvData.length - 1)
         .on("mouseover", highlight)
@@ -347,9 +347,9 @@ function updateChart(bars, n, colorScale){
 //function to highlight enumeration units and bars
 function highlight(props){
     //change stroke
-    var selected = d3.selectAll(".provinces")
+    var selected = d3.selectAll(".provinces.ID" + props.ID)
         .style({
-            "stroke": "yellow",
+            "stroke": "#FFE600",
             "stroke-width": "2"
         });
 
@@ -361,7 +361,6 @@ function setLabel(props){
     //label content
     var labelAttribute = "<h1>" + props[expressed] +
         "</h1><b>" + expressed + "</b>";
-        console.log(labelAttribute)
 
     //create info label div
     var infolabel = d3.select("body")
@@ -379,7 +378,7 @@ function setLabel(props){
 
 //function to reset the element style on mouseout
 function dehighlight(props){
-    var selected = d3.selectAll(".provinces")
+    var selected = d3.selectAll(".provinces.ID" + props.ID)
         .style({
             "stroke": function(){
                 return getStyle(this, "stroke")

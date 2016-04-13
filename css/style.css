@@ -108,7 +108,7 @@
 
 .dropdown {
     position: absolute;
-    top: 110px;
+    top: 100px;
     left: 50px;
     z-index: 10;
     font-family: sans-serif;
@@ -152,4 +152,18 @@ option {
     bottom: 0;
     right: 1%;
     font-size: 90%;
+}
+
+a:link {
+    color: #000066; /*navy blue*/
+}
+
+/* visited link */
+a:visited {
+    color: #003300; /*dark green*/
+}
+
+/* mouse over link */
+a:hover {
+    color: #990000; /*deep red*/
 }
