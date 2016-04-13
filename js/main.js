@@ -19,24 +19,6 @@ var chartWidth = window.innerWidth * 0.44,
 var yScale = d3.scale.linear()
     .range([530, 80])
     .domain([0, 50]);
-//     .domain(function() {
-//     if (expressed = "Freshwater") {
-//         return([0, 16]);
-//     }
-//     else if (expressed = "Copper") {
-//         return([0, 0.33]);
-//     }
-//     else if (expressed = "Gold") {
-//         return([0, 0.07]);
-//     }
-//     else if (expressed = "Timber") {
-//         return([0, 140]);
-//     }
-//     else if (expressed = "Natural Gas") {
-//         return([0, 185]);
-//     }    
-//     else {return([0, 16]);}
-// });
 
 //begin script when window loads
 window.onload = setMap();
@@ -44,7 +26,7 @@ window.onload = setMap();
 //set up choropleth map
 function setMap(){
 
-        //map frame dimensions
+    //map frame dimensions
     var width = window.innerWidth * 0.48,
         height = 530;
 
@@ -96,10 +78,8 @@ function setMap(){
     };
 }; //end of setMap()
 
+//join geojson with csv data
 function joinData(canadianProvinces, csvData){
-        //variables for data join
-        // var attrArray = ["Copper", "Gold", "Timber", "Natural Gas", "Freshwater", "Resources"];
-
         //loop through csv to assign each set of csv attribute values to geojson region
         for (var i=0; i<csvData.length; i++){
             var csvRegion = csvData[i]; //the current region
@@ -139,6 +119,7 @@ function setEnumerationUnits(canadianProvinces, map, path, colorScale){
         .style("fill", function(d){
             return choropleth(d.properties, colorScale);
         })
+        //highlight, dehighlight, and create labels when mousing over provinces and bars
         .on("mouseover", function(d){
             highlight(d.properties);
         })
@@ -151,12 +132,6 @@ function setEnumerationUnits(canadianProvinces, map, path, colorScale){
     var desc = provinces.append("desc")
         .text('{"stroke": "#fff", "stroke-width": "2px"}');
 };
-
-var colorCopper = ["#feedde","#fdbe85","#fd8d3c","#e6550d","#a63603"];
-var colorGold = ["#FFF7D5","#FFEEAA","#FFE680","#FFDD55","#FFCC00"];
-var colorTimber = ["#edf8e9","#bae4b3","#74c476","#31a354","#006d2c"];
-var colorNaturalGas = ["#feebe2","#fbb4b9","#f768a1","#c51b8a","#7a0177"]; 
-var colorFreshwater = ["#eff3ff","#bdd7e7","#6baed6","#3182bd","#08519c"];
 
 //function to create color scale generator
 function makeColorScale(data){
@@ -239,6 +214,7 @@ function setChart(csvData, colorScale){
         .attr("class", "chartTitle")
         .text("Resources in each Province or Territory");
 
+    //create a text element for the subtitle explaining data
     var chartSubtitle = chart.append("text")
         .attr("x", 240)
         .attr("y", 70)
@@ -281,7 +257,7 @@ function createDropdown(csvData){
     var titleOption = dropdown.append("option")
         .attr("class", "titleOption")
         .attr("disabled", "true")
-        .text("Select Attribute");
+        .text("Select Resource");
 
     //add attribute name options
     var attrOptions = dropdown.selectAll("attrOptions")
@@ -349,8 +325,8 @@ function highlight(props){
     //change stroke
     var selected = d3.selectAll(".provinces.ID" + props.ID)
         .style({
-            "stroke": "#FFE600",
-            "stroke-width": "2"
+            "stroke": "#ffff00",
+            "stroke-width": "3"
         });
 
     setLabel(props);
@@ -359,8 +335,8 @@ function highlight(props){
 //function to create dynamic label
 function setLabel(props){
     //label content
-    var labelAttribute = "<h1>" + props[expressed] +
-        "</h1><b>" + expressed + "</b>";
+    var labelAttribute = "<h1>" + props[expressed] + "%" +
+        "</h1><b>" + "of " + expressed + "</b>";
 
     //create info label div
     var infolabel = d3.select("body")
@@ -371,6 +347,7 @@ function setLabel(props){
         })
         .html(labelAttribute);
 
+    //fill info label div
     var provinceName = infolabel.append("div")
         .attr("class", "labelname")
         .html(props.name);
@@ -388,6 +365,7 @@ function dehighlight(props){
             }
         });
 
+    //revert back to pre-highlight stroke
     function getStyle(element, styleName){
         var styleText = d3.select(element)
             .select("desc")
@@ -422,6 +400,7 @@ function moveLabel(){
     //vertical label coordinate, testing for overflow
     var y = d3.event.clientY < 75 ? y2 : y1;
 
+    //position info label
     d3.select(".infolabel")
         .style({
             "left": x + "px",
